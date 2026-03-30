@@ -52,3 +52,25 @@ Then call:
 
 API mode does not push automatically. Use `python run_flow.py` for interactive BA push approval.
 
+## Branch strategy (traceable and simple)
+
+- `main`: production-ready code
+- `develop`: integration branch for upcoming release
+- `feature/*`: feature work (example: `feature/ba-dev-tester-flow`)
+- `test/*`: testing-focused improvements (example: `test/pytest-integration-suite`)
+
+Recommended flow:
+
+1. Create work in `feature/*` or `test/*`
+2. Raise PR into `develop`
+3. Merge `develop` into `main` for release
+4. Tag `main` with `v*` to trigger CD release workflow
+
+## GitHub Actions
+
+- CI workflow: `.github/workflows/ci.yml`
+  - Runs on push/PR for key branches
+  - Installs dependencies and runs `pytest -q`
+- CD workflow: `.github/workflows/cd.yml`
+  - Runs on `v*` tags or manual trigger
+  - Runs tests, builds source archive, and creates GitHub Release
