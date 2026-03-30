@@ -25,18 +25,38 @@ jobs:
         with:
           python-version: "3.11"
 
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+          cache-dependency-path: frontend/package-lock.json
+
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
+      - name: Install frontend dependencies
+        working-directory: frontend
+        run: npm ci
+
       - name: Run tests
-        run: pytest -q
+        run: |
+          pytest -q
+          cd frontend
+          npm run test
+
+      - name: Build frontend
+        working-directory: frontend
+        run: npm run build
 
       - name: Build source archive
         run: |
           mkdir -p dist
           git archive --format=zip --output=dist/source.zip HEAD
+          cd frontend
+          zip -r ../dist/frontend-dist.zip dist
 
       - name: Determine release tag
         id: tag
@@ -52,5 +72,6 @@ jobs:
         with:
           tag_name: ${{ steps.tag.outputs.value }}
           name: Release ${{ steps.tag.outputs.value }}
-          files: dist/source.zip
-
+          files: |
+            dist/source.zip
+            dist/frontend-dist.zip
